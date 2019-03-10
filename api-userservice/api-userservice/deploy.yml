@@ -1,0 +1,72 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: api-userservice
+spec:
+  selector:
+    app: api-userservice
+  ports:
+  - protocol: TCP
+    port: 8080
+    targetPort: 80
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: api-userservice-deploy
+spec:
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+  minReadySeconds: 5
+  template:
+    metadata:
+      labels:
+        app: api-userservice
+      annotations:
+        version: "20181130.2"
+    spec:
+      containers:
+      - name: api-userservice
+        image: ahck8s.azurecr.io/api-userservice:20181130.2
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: ENVIRONMENT_NAME
+          valueFrom:
+            configMapKeyRef:
+              name: common-config
+              key: environmentName
+        - name: APP_INSIGHTS_INSTRUMENTATION_KEY
+          valueFrom:
+            configMapKeyRef:
+              name: common-config
+              key: appInsightsInstrumenationKey
+        - name: CACHE_EXPIRATION_IN_MINUTES
+          value: "15"
+        - name: APPLICATION_SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: common-secrets
+              key: adApplicationSecretKey
+        - name: DIRECTORY_ID
+          valueFrom:
+            configMapKeyRef:
+              name: common-config
+              key: adDirectoryId
+        - name: APPLICATION_ID
+          valueFrom:
+            configMapKeyRef:
+              name: common-config
+              key: adApplicationId
+        - name: CUSTOMER_SERVICE_URL
+          valueFrom:
+            configMapKeyRef:
+              name: common-config
+              key: urlCustomerService
+      nodeSelector:
+         beta.kubernetes.io/os: linux
+      imagePullSecrets:
+        - name: ahc-repository

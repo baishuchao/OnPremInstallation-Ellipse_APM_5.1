@@ -1,0 +1,56 @@
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: trigger-maintenance-score-service-cron-job
+spec:
+  concurrencyPolicy: Forbid
+  schedule: "15 22 * * *"
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            app: trigger-maintenance-score-service-cron-job
+          annotations:
+            version: "20181119.1"
+        spec:
+          restartPolicy: OnFailure
+          containers:
+          - name: trigger-service
+            image: ahck8s.azurecr.io/apm-trigger-service:20181119.1
+            args:
+            - --action
+            - maintenance-score-update
+            env:
+            - name: ENVIRONMENT_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: tenant-config
+                  key: environmentName
+            - name: BUS
+              valueFrom:
+                configMapKeyRef:
+                  name: tenant-config
+                  key: busType
+            - name: BUS_CONFIGURATION
+              valueFrom:
+                secretKeyRef:
+                  name: tenant-secrets
+                  key: busconfiguration
+            - name: TENANT
+              valueFrom:
+                configMapKeyRef:
+                  name: tenant-config
+                  key: tenant
+            - name: TARGET_TOPIC
+              valueFrom:
+                configMapKeyRef:
+                  name: tenant-config
+                  key: topicRawData
+            - name: APP_INSIGHTS_INSTRUMENTATION_KEY
+              valueFrom:
+                configMapKeyRef:
+                  name: tenant-config
+                  key: appInsightsInstrumenationKey
+          imagePullSecrets:
+          - name: ahc-repository

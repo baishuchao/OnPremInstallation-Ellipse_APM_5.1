@@ -1,0 +1,86 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: model-input-collector-deploy
+spec:
+  serviceName: "model-input-collector"
+  replicas: 1
+  updateStrategy:
+    type: RollingUpdate 
+  selector:
+    matchLabels:
+      app: model-input-collector
+  template:
+    metadata:
+      labels:
+        app: model-input-collector
+      annotations:
+        version: "20181205.1"
+    spec:
+      containers:
+      - name: model-input-collector
+        image: ahck8s.azurecr.io/apm-model-input-collector:20181205.1
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: ENVIRONMENT_NAME
+          valueFrom:
+            configMapKeyRef:
+              name: tenant-config
+              key: environmentName
+        - name: BUS
+          valueFrom:
+            configMapKeyRef:
+              name: tenant-config
+              key: busType
+        - name: BUS_CONSUMER_GROUP
+          valueFrom:
+            configMapKeyRef:
+              name: tenant-config
+              key: consumerGroupModelInputCollector
+        - name: BUS_CONFIGURATION
+          valueFrom:
+            secretKeyRef:
+              name: tenant-secrets
+              key: busconfiguration
+        - name: STORE
+          valueFrom:
+            configMapKeyRef:
+              name: tenant-config
+              key: storeType
+        - name: STORE_CONFIGURATION
+          valueFrom:
+            secretKeyRef:
+              name: tenant-secrets
+              key: storeconfiguration
+        - name: TENANT
+          valueFrom:
+            configMapKeyRef:
+              name: tenant-config
+              key: tenant
+        - name: SOURCE
+          valueFrom:
+            configMapKeyRef:
+              name: tenant-config
+              key: topicModelParameters
+        - name: TARGET
+          valueFrom:
+            configMapKeyRef:
+              name: tenant-config
+              key: topicModelInputs
+        - name: MODEL_TRIGGER_EXECUTION_DELAY_IN_SECONDS
+          valueFrom:
+            configMapKeyRef:
+              name: tenant-config
+              key: modelTriggerExecutionDelayInSecends
+        - name: REPLICAS
+          value: "1"
+        - name: POD_NAME_PREFIX
+          value: "model-input-collector-deploy"
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+      nodeSelector:
+         beta.kubernetes.io/os: linux 
+      imagePullSecrets:
+        - name: ahc-repository

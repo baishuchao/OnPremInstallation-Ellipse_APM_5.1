@@ -1,0 +1,108 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: apm-notification-service-deploy
+spec:
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+  minReadySeconds: 5
+  template:
+    metadata:
+      labels:
+        app: apm-notification-service
+      annotations:
+        version: "20181119.1"
+    spec:
+      containers:
+      - name: apm-notification-service
+        image: ahck8s.azurecr.io/apm-notification-service:20181119.1
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: ENVIRONMENT_NAME
+          valueFrom:
+            configMapKeyRef:
+              name: tenant-config
+              key: environmentName
+        - name: BUS
+          valueFrom:
+            configMapKeyRef:
+              name: tenant-config
+              key: busType
+        - name: BUS_CONFIGURATION
+          valueFrom:
+            secretKeyRef:
+              name: tenant-secrets
+              key: busconfiguration
+        - name: SQL_CONNECTION_STRING
+          valueFrom:
+            secretKeyRef:
+              name: tenant-secrets
+              key: sqlconnectionstring
+        - name: BUS_CONSUMER_GROUP
+          valueFrom:
+            configMapKeyRef:
+              name: tenant-config
+              key: consumerGroupNotifications
+        - name: SOURCE
+          valueFrom:
+            configMapKeyRef:
+              name: tenant-config
+              key: topicNotifications
+        - name: TENANT
+          valueFrom:
+            configMapKeyRef:
+              name: tenant-config
+              key: tenant
+        - name: ALERT_EMAIL_ADDRESS
+          valueFrom:
+            configMapKeyRef:
+              name: tenant-config
+              key: notificationAlertEmailAddress
+        - name: EMAIL_SERVER
+          valueFrom:
+            configMapKeyRef:
+              name: tenant-config
+              key: notificationEmailServer
+        - name: EMAIL_SERVER_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: tenant-config
+              key: notificationEmailServerPort
+        - name: EMAIL_SERVER_USERNAME
+          valueFrom:
+            configMapKeyRef:
+              name: tenant-config
+              key: notificationEmailServerUsername
+        - name: EMAIL_SERVER_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: tenant-secrets
+              key: notificationEmailServerPassword
+        - name: EMAIL_SERVER_ENABLE_SSL
+          valueFrom:
+            configMapKeyRef:
+              name: tenant-config
+              key: notificationEmailServerEnableSsl
+        - name: URL_TRANSLATION_SERVICE
+          valueFrom:
+            configMapKeyRef:
+              name: tenant-config
+              key: urlTranslationService
+        - name: URL_USER_SERVICE
+          valueFrom:
+            configMapKeyRef:
+              name: tenant-config
+              key: urlUserService
+        - name: APPLICATION_WEBSITE_URL
+          valueFrom:
+            configMapKeyRef:
+              name: tenant-config
+              key: applicationWebsiteUrl
+      nodeSelector:
+         beta.kubernetes.io/os: linux 
+      imagePullSecrets:
+        - name: ahc-repository

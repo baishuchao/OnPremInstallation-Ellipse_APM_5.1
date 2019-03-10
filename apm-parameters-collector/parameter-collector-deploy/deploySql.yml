@@ -1,0 +1,88 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: parameter-collector-deploy-sql
+spec:
+  serviceName: "parameter-collector-sql"
+  replicas: 3
+  updateStrategy:
+    type: RollingUpdate
+  selector:
+    matchLabels:
+      app: parameter-collector-sql
+  template:
+    metadata:
+      labels:
+        app: parameter-collector-sql
+      annotations:
+        version: "20181206.8"
+    spec:
+      containers:
+      - name: parameter-collector-sql
+        image: ahck8s.azurecr.io/apm-parameter-collector:20181206.8
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: ENVIRONMENT_NAME
+          valueFrom:
+            configMapKeyRef:
+              name: tenant-config
+              key: environmentName
+        - name: BUS
+          valueFrom:
+            configMapKeyRef:
+              name: tenant-config
+              key: busType
+        - name: BUS_CONSUMER_GROUP
+          valueFrom:
+            configMapKeyRef:
+              name: tenant-config
+              key: consumerGroupParametersSql
+        - name: TOPIC
+          valueFrom:
+            configMapKeyRef:
+              name: tenant-config
+              key: topicParameters
+        - name: BUS_CONFIGURATION
+          valueFrom:
+            secretKeyRef:
+              name: tenant-secrets
+              key: busconfiguration
+        - name: STORE
+          valueFrom:
+            configMapKeyRef:
+              name: tenant-config
+              key: storeType
+        - name: STORE_CONFIGURATION
+          valueFrom:
+            secretKeyRef:
+              name: tenant-secrets
+              key: storeconfiguration
+        - name: SQL_CONNECTION_STRING
+          valueFrom:
+            secretKeyRef:
+              name: tenant-secrets
+              key: sqlconnectionstring
+        - name: PARAMETERS_HISTORY_SIZE
+          valueFrom:
+            configMapKeyRef:
+              name: tenant-config
+              key: parametersHistorySize
+        - name: TENANT
+          valueFrom:
+            configMapKeyRef:
+              name: tenant-config
+              key: tenant
+        - name: REPLICAS
+          value: "3"
+        - name: REPOSITORIES
+          value: "sql"
+        - name: POD_NAME_PREFIX
+          value: "parameter-collector-deploy-sql"
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+      nodeSelector:
+         beta.kubernetes.io/os: linux 
+      imagePullSecrets:
+        - name: ahc-repository

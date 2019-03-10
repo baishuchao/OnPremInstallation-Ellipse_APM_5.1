@@ -1,0 +1,91 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: score-service-deploy
+spec:
+  serviceName: "score-service"
+  replicas: 1
+  updateStrategy:
+    type: RollingUpdate
+  selector:
+    matchLabels:
+      app: score-service
+  template:
+    metadata:
+      labels:
+        app: score-service
+      annotations:
+        version: "20181119.1"
+    spec:
+      containers:
+      - name: score-service
+        image: ahck8s.azurecr.io/apm-score-service:20181119.1
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: ENVIRONMENT_NAME
+          valueFrom:
+            configMapKeyRef:
+              name: tenant-config
+              key: environmentName
+        - name: BUS
+          valueFrom:
+            configMapKeyRef:
+              name: tenant-config
+              key: busType
+        - name: BUS_CONFIGURATION
+          valueFrom:
+            secretKeyRef:
+              name: tenant-secrets
+              key: busconfiguration
+        - name: BUS_CONSUMER_GROUP
+          valueFrom:
+            configMapKeyRef:
+              name: tenant-config
+              key: consumerGroupScoreService
+        - name: TENANT
+          valueFrom:
+            configMapKeyRef:
+              name: tenant-config
+              key: tenant
+        - name: TOPIC_SCORES
+          valueFrom:
+            configMapKeyRef:
+              name: tenant-config
+              key: topicHealthScores
+        - name: STORE
+          valueFrom:
+            configMapKeyRef:
+              name: tenant-config
+              key: storeType
+        - name: STORE_CONFIGURATION
+          valueFrom:
+            secretKeyRef:
+              name: tenant-secrets
+              key: storeconfiguration
+        - name: SQL_CONNECTION_STRING
+          valueFrom:
+            secretKeyRef:
+              name: tenant-secrets
+              key: sqlconnectionstring
+        - name: SCORE_HISTORY_SIZE
+          valueFrom:
+            configMapKeyRef:
+              name: tenant-config
+              key: scoresHistorySize
+        - name: REPLICAS
+          value: "1"
+        - name: POD_NAME_PREFIX
+          value: "score-service-deploy"
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: TOPIC_FOR_LATEST_HEALTH_SCORE_CHANGE
+          valueFrom:
+            configMapKeyRef:
+              name: tenant-config
+              key: topicRawData
+      nodeSelector:
+         beta.kubernetes.io/os: linux 
+      imagePullSecrets:
+        - name: ahc-repository

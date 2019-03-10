@@ -1,0 +1,76 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: asset-issue-service-deploy
+spec:
+  serviceName: "asset-issue-service"
+  replicas: 1
+  updateStrategy:
+    type: RollingUpdate 
+  selector:
+    matchLabels:
+      app: asset-issue-service
+  template:
+    metadata:
+      labels:
+        app: asset-issue-service
+      annotations:
+        version: "20181206.3"
+    spec:
+      containers:
+      - name: asset-issue-service
+        image: ahck8s.azurecr.io/apm-asset-issue-service:20181206.3
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: ENVIRONMENT_NAME
+          valueFrom:
+            configMapKeyRef:
+              name: tenant-config
+              key: environmentName
+        - name: BUS
+          valueFrom:
+            configMapKeyRef:
+              name: tenant-config
+              key: busType
+        - name: BUS_CONFIGURATION
+          valueFrom:
+            secretKeyRef:
+              name: tenant-secrets
+              key: busconfiguration
+        - name: BUS_CONSUMER_GROUP
+          valueFrom:
+            configMapKeyRef:
+              name: tenant-config
+              key: consumerGroupAssetIssue
+        - name: SQL_CONNECTION_STRING
+          valueFrom:
+            secretKeyRef:
+              name: tenant-secrets
+              key: sqlconnectionstring
+        - name: TENANT
+          valueFrom:
+            configMapKeyRef:
+              name: tenant-config
+              key: tenant
+        - name: MODEL_ISSUE_MESSAGES_TOPIC
+          valueFrom:
+            configMapKeyRef:
+              name: tenant-config
+              key: topicModelIssueMessages
+        - name: REPLICAS
+          value: "1"
+        - name: POD_NAME_PREFIX
+          value: "asset-issue-service-deploy"
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: EVENT_CHANGE_TOPIC
+          valueFrom:
+            configMapKeyRef:
+              name: tenant-config
+              key: topicEventChanges
+      nodeSelector:
+         beta.kubernetes.io/os: linux 
+      imagePullSecrets:
+        - name: ahc-repository

@@ -1,0 +1,58 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: trigger-service-deploy
+spec:
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+  minReadySeconds: 5
+  template:
+    metadata:
+      labels:
+        app: trigger-service
+      annotations:
+        version: "20181119.1"
+    spec:
+      containers:
+      - name: trigger-service
+        image: ahck8s.azurecr.io/apm-trigger-service:20181119.1
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: ENVIRONMENT_NAME
+          valueFrom:
+            configMapKeyRef:
+              name: tenant-config
+              key: environmentName
+        - name: BUS
+          valueFrom:
+            configMapKeyRef:
+              name: tenant-config
+              key: busType
+        - name: BUS_CONFIGURATION
+          valueFrom:
+            secretKeyRef:
+              name: tenant-secrets
+              key: busconfiguration
+        - name: TENANT
+          valueFrom:
+            configMapKeyRef:
+              name: tenant-config
+              key: tenant
+        - name: TARGET_TOPIC
+          valueFrom:
+            configMapKeyRef:
+              name: tenant-config
+              key: topicRawData
+        - name: APP_INSIGHTS_INSTRUMENTATION_KEY
+          valueFrom:
+            configMapKeyRef:
+              name: tenant-config
+              key: appInsightsInstrumenationKey
+      nodeSelector:
+         beta.kubernetes.io/os: linux 
+      imagePullSecrets:
+        - name: ahc-repository

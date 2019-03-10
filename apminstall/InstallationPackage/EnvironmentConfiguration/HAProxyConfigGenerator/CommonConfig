@@ -1,0 +1,61 @@
+global
+   log 127.0.0.1 local1
+   log /dev/log local1 notice
+   chroot /var/lib/haproxy
+   stats timeout 30s
+   user haproxy
+   group haproxy
+   daemon
+ 
+defaults
+   log global
+   mode http
+   option httplog
+   option dontlognull
+   timeout connect 5000
+   timeout client 50000
+   timeout server 50000
+
+#frontend http_10080
+#   bind *:10080
+#   stats uri /haproxy?stats
+#   default_backend http_back_30080
+
+#frontend http_10081
+#   bind *:10081
+#   stats uri /haproxy?stats
+#   default_backend http_back_30081
+
+#frontend http_10082
+#   bind *:10082
+#   stats uri /haproxy?stats
+#   default_backend http_back_30082
+
+#backend http_back_30080
+#   balance roundrobin
+#   server lable1 172.20.0.4:30080 check
+#   server lable2 172.20.0.8:30080 check
+#   server lable3 172.20.0.10:30080 check
+
+#backend http_back_30081
+#   balance roundrobin
+#   server env2_srv1 172.20.0.4:30081 check
+#   server env2_srv2 172.20.0.8:30081 check
+#   server env2_srv3 172.20.0.10:30081 check
+
+#backend http_back_30082
+#   balance roundrobin
+#   server env3_srv3 172.20.0.10:30082 check
+#   server env3_srv1 172.20.0.4:30082 check
+#   server env3_srv2 172.20.0.8:30082 check
+    
+#redirect HTTP to HTTPS
+#frontend http-in
+#    bind 0.0.0.0:80
+#    redirect scheme https code 301 if !{ ssl_fc }
+
+#frontend https_front
+#   bind *:443 ssl crt /etc/ssl/haproxy/abb-test.tld.pem            # "crt" may indicate a file (which may have multiple certs.) or a folder (all certs are loaded from it)
+#   bind *:443 ssl crt-list /etc/ssl/private/haproxy-crt-list.txt   # "crl-list" indicates a text file indicating how certs are to be used for specific domains
+
+#    http-request set-header X-Forwarded-Proto https if { ssl_fc }

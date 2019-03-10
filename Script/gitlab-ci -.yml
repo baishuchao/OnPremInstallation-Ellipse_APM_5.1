@@ -1,0 +1,80 @@
+before_script:
+  - HOST_LOCAL_IP=`ip -4 addr show | grep "ens\|eth" | grep -Po 'inet \K[\d.]+'`
+
+stages:
+  - build
+  - deploy
+
+variables:
+  PORT: 16019
+  REMOTE_DEBUG_PORT: 18019
+  REMOTE_DEBUG: -Xdebug -Xrunjdwp:server=y,transport=dt_socket,address=$REMOTE_DEBUG_PORT,suspend=n
+
+build-dev:
+  stage: build
+  script:
+    - mvn clean deploy
+  artifacts:
+    paths:
+      - partner-web/target/
+  only:
+    - dev
+  tags:
+    - dev-ci
+
+delopy-dev:
+  stage: deploy
+  script:
+    - docker build -t $CI_PROJECT_NAME-image .
+    - container_name=`docker ps -aq --filter name=$CI_PROJECT_NAME-service` && [ -n "$container_name" ] && docker rm -f $container_name
+    - docker run -p $PORT:$PORT -e PROFILE=dev -e HOST_LOCAL_IP=$HOST_LOCAL_IP -p $REMOTE_DEBUG_PORT:$REMOTE_DEBUG_PORT -e DEBUG="$REMOTE_DEBUG" -v /data:/data --log-opt max-size=10m --log-opt max-file=10 --restart=always --name=$CI_PROJECT_NAME-service -d $CI_PROJECT_NAME-image
+  only:
+    - dev
+  tags:
+    - dev-ci
+
+build-qa:
+  stage: build
+  script:
+    - mvn clean deploy
+  artifacts:
+    paths:
+      - partner-web/target/
+  only:
+    - /^release\/.*$/
+  tags:
+    - qa-ci
+
+delopy-qa:
+  stage: deploy
+  script:
+    - docker build -t $CI_PROJECT_NAME-image .
+    - container_name=`docker ps -aq --filter name=$CI_PROJECT_NAME-service` && [ -n "$container_name" ] && docker rm -f $container_name
+    - docker run -p $PORT:$PORT -e PROFILE=qa -e HOST_LOCAL_IP=$HOST_LOCAL_IP -v /data:/data --log-opt max-size=10m --log-opt max-file=10 --restart=always --name=$CI_PROJECT_NAME-service -d $CI_PROJECT_NAME-image
+  only:
+    - /^release\/.*$/
+  tags:
+    - qa-ci
+
+build-master:
+  stage: build
+  script:
+    - mvn clean deploy
+  artifacts:
+    paths:
+      - partner-web/target/
+  only:
+    - master
+  tags:
+    - java-ci
+
+delopy-master:
+  stage: deploy
+  script:
+    - docker build -t $CI_PROJECT_NAME-image .
+    - container_name=`docker ps -aq --filter name=$CI_PROJECT_NAME-service` && [ -n "$container_name" ] && docker rm -f $container_name
+    - docker run -p $PORT:$PORT -e PROFILE=prod -e HOST_LOCAL_IP=$HOST_LOCAL_IP -v /data:/data --log-opt max-size=10m --log-opt max-file=10 --restart=always --name=$CI_PROJECT_NAME-service -d $CI_PROJECT_NAME-image
+  only:
+    - master
+  tags:
+    - java-ci

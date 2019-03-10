@@ -1,0 +1,81 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: asset-history-service-deploy
+spec:
+  serviceName: "asset-history-service"
+  replicas: 1
+  updateStrategy:
+    type: RollingUpdate
+  selector:
+    matchLabels:
+      app: asset-history-service
+  template:
+    metadata:
+      labels:
+        app: asset-history-service
+      annotations:
+        version: "20181130.1"
+    spec:
+      containers:
+      - name: asset-history-service
+        image: ahck8s.azurecr.io/apm-asset-history-service:20181130.1
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: ENVIRONMENT_NAME
+          valueFrom:
+            configMapKeyRef:
+              name: tenant-config
+              key: environmentName
+        - name: BUS
+          valueFrom:
+            configMapKeyRef:
+              name: tenant-config
+              key: busType
+        - name: BUS_CONFIGURATION
+          valueFrom:
+            secretKeyRef:
+              name: tenant-secrets
+              key: busconfiguration
+        - name: BUS_CONSUMER_GROUP
+          valueFrom:
+            configMapKeyRef:
+              name: tenant-config
+              key: consumerGroupAssetHistoryService
+        - name: TENANT
+          valueFrom:
+            configMapKeyRef:
+              name: tenant-config
+              key: tenant
+        - name: TOPIC_ASSET_HISTORY
+          valueFrom:
+            configMapKeyRef:
+              name: tenant-config
+              key: topicAssetHistory
+        - name: STORE
+          valueFrom:
+            configMapKeyRef:
+              name: tenant-config
+              key: storeType
+        - name: STORE_CONFIGURATION
+          valueFrom:
+            secretKeyRef:
+              name: tenant-secrets
+              key: storeconfiguration
+        - name: SQL_CONNECTION_STRING
+          valueFrom:
+            secretKeyRef:
+              name: tenant-secrets
+              key: sqlconnectionstring
+        - name: REPLICAS
+          value: "1"
+        - name: POD_NAME_PREFIX
+          value: "asset-history-service-deploy"
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+      nodeSelector:
+         beta.kubernetes.io/os: linux 
+      imagePullSecrets:
+        - name: ahc-repository

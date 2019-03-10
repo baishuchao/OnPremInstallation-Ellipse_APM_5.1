@@ -1,0 +1,5 @@
+{
+	"SqlConnectionString": "Server=(localdb)\\ahc;Integrated Security=true;Connection Timeout=900;Initial Catalog=AHC-ABB",
+	"ReportSchemeUserName": "reports",
+	"ReportSchemeUserPassword": "newReportP@$$w0rd!"
+}

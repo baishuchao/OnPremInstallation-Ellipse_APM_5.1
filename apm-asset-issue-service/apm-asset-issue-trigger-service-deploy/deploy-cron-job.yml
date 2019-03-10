@@ -1,0 +1,56 @@
+﻿apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: trigger-asset-issue-state-cron-job
+spec:
+  concurrencyPolicy: Forbid
+  schedule: "0 10 * * *"
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            app: trigger-asset-issue-state-cron-job
+          annotations:
+            version: "20181119.1"
+        spec:
+          restartPolicy: OnFailure
+          containers:
+          - name: trigger-service
+            image: ahck8s.azurecr.io/apm-trigger-service:20181119.1
+            args:
+            - --action
+            - issue-state-update
+            env:
+            - name: ENVIRONMENT_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: tenant-config
+                  key: environmentName
+            - name: BUS
+              valueFrom:
+                configMapKeyRef:
+                  name: tenant-config
+                  key: busType
+            - name: BUS_CONFIGURATION
+              valueFrom:
+                secretKeyRef:
+                  name: tenant-secrets
+                  key: busconfiguration
+            - name: TENANT
+              valueFrom:
+                configMapKeyRef:
+                  name: tenant-config
+                  key: tenant
+            - name: TARGET_TOPIC
+              valueFrom:
+                configMapKeyRef:
+                  name: tenant-config
+                  key: topicRawData
+            - name: APP_INSIGHTS_INSTRUMENTATION_KEY
+              valueFrom:
+                configMapKeyRef:
+                  name: tenant-config
+                  key: appInsightsInstrumenationKey
+          imagePullSecrets:
+          - name: ahc-repository

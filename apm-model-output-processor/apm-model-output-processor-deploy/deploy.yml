@@ -1,0 +1,78 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: model-output-processor-deploy
+spec:
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+  minReadySeconds: 5
+  template:
+    metadata:
+      labels:
+        app: model-output-processor
+      annotations:
+        version: "20181126.1"
+    spec:
+      containers:
+      - name: model-output-processor
+        image: ahck8s.azurecr.io/apm-model-output-processor:20181126.1
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: ENVIRONMENT_NAME
+          valueFrom:
+            configMapKeyRef:
+              name: tenant-config
+              key: environmentName
+        - name: BUS
+          valueFrom:
+            configMapKeyRef:
+              name: tenant-config
+              key: busType
+        - name: BUS_CONFIGURATION
+          valueFrom:
+            secretKeyRef:
+              name: tenant-secrets
+              key: busconfiguration
+        - name: BUS_CONSUMER_GROUP
+          valueFrom:
+            configMapKeyRef:
+              name: tenant-config
+              key: consumerGroupModelOutput
+        - name: TENANT
+          valueFrom:
+            configMapKeyRef:
+              name: tenant-config
+              key: tenant
+        - name: TOPIC_MODEL_OUTPUTS
+          valueFrom:
+            configMapKeyRef:
+              name: tenant-config
+              key: topicModelOutput
+        - name: TOPIC_FOR_MODEL_HEALTH_SCORES
+          valueFrom:
+            configMapKeyRef:
+              name: tenant-config
+              key: topicRawData
+        - name: TOPIC_FOR_MESSAGE_LOG
+          valueFrom:
+            configMapKeyRef:
+              name: tenant-config
+              key: topicModelMessageLog
+        - name: TOPIC_FOR_MODEL_ISSUES
+          valueFrom:
+            configMapKeyRef:
+              name: tenant-config
+              key: topicModelIssueMessages
+        - name: TOPIC_FOR_MODEL_CUSTOM_OUTPUTS
+          valueFrom:
+            configMapKeyRef:
+              name: tenant-config
+              key: topicModelCustomOutputs
+      nodeSelector:
+         beta.kubernetes.io/os: linux 
+      imagePullSecrets:
+        - name: ahc-repository

@@ -1,0 +1,88 @@
+apiVersion: v1
+kind: Service
+metadata:  
+  name: feeder-api-nodeport-service
+spec:
+  selector:
+    app: feeder-api
+  type: NodePort
+  ports:  
+  - name: http
+    port: 80
+    targetPort: 80
+    nodePort: <FEEDER_API_PORT>
+    protocol: TCP
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: apm-feeder-api-deploy
+spec:
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+  minReadySeconds: 5
+  template:
+    metadata:
+      labels:
+        app: feeder-api
+      annotations:
+        version: "20181129.1"
+    spec:
+      containers:
+      - name: feeder-api
+        image: ahck8s.azurecr.io/apm-feeder-api:20181129.1
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: ENVIRONMENT_NAME
+          valueFrom:
+            configMapKeyRef:
+              name: common-config
+              key: environmentName
+        - name: BUS
+          valueFrom:
+            configMapKeyRef:
+              name: common-config
+              key: busType
+        - name: TOPIC
+          valueFrom:
+            configMapKeyRef:
+              name: common-config
+              key: topicRawData
+        - name: BUS_CONFIGURATION
+          valueFrom:
+            secretKeyRef:
+              name: common-secrets
+              key: busconfiguration
+        - name: APP_INSIGHTS_INSTRUMENTATION_KEY
+          valueFrom:
+            configMapKeyRef:
+              name: common-config
+              key: appInsightsInstrumenationKey
+        - name: AUTHORITY
+          valueFrom:
+            configMapKeyRef:
+              name: common-config
+              key: adDirectoryAuthority
+        - name: CLIENT_ID
+          valueFrom:
+            configMapKeyRef:
+              name: common-config
+              key: adApplicationId
+        - name: CLIENT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: common-secrets
+              key: adApplicationSecretKey
+        - name: URL_CUSTOMER_SERVICE
+          valueFrom:
+            configMapKeyRef:
+              name: common-config
+              key: urlCustomerService
+      nodeSelector:
+         beta.kubernetes.io/os: linux
+      imagePullSecrets:
+        - name: ahc-repository

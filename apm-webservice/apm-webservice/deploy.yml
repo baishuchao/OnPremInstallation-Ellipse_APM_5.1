@@ -1,0 +1,140 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: webservice-nodeport-service
+spec:
+  selector:
+    app: webservice
+  type: NodePort
+  ports:
+  - name: http
+    protocol: TCP
+    port: 80
+    targetPort: 80
+    nodePort: <WEB_SERVICE_PORT>
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: webservice-deploy
+spec:
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+  minReadySeconds: 5
+  template:
+    metadata:
+      labels:
+        app: webservice
+      annotations:
+        version: "20181206.6"
+    spec:
+      containers:
+      - name: webservice
+        image: ahck8s.azurecr.io/apm-webservice:20181206.6
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: ENVIRONMENT_NAME
+          valueFrom:
+            configMapKeyRef:
+              name: common-config
+              key: environmentName
+        - name: BUS
+          valueFrom:
+            configMapKeyRef:
+              name: common-config
+              key: busType
+        - name: BUS_CONFIGURATION
+          valueFrom:
+            secretKeyRef:
+              name: common-secrets
+              key: busconfiguration
+        - name: TOPIC
+          valueFrom:
+            configMapKeyRef:
+              name: common-config
+              key: topicRawData
+        - name: URL_CUSTOMER_SERVICE
+          valueFrom:
+            configMapKeyRef:
+              name: common-config
+              key: urlCustomerService
+        - name: URL_TRANSLATION_SERVICE
+          valueFrom:
+            configMapKeyRef:
+              name: common-config
+              key: urlTranslationService
+        - name: APP_INSIGHTS_INSTRUMENTATION_KEY
+          valueFrom:
+            configMapKeyRef:
+              name: common-config
+              key: appInsightsInstrumenationKey
+        - name: AUTHORITY
+          valueFrom:
+            configMapKeyRef:
+              name: common-config
+              key: adDirectoryAuthority
+        - name: CLIENT_ID
+          valueFrom:
+            configMapKeyRef:
+              name: common-config
+              key: adApplicationId
+        - name: CLIENT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: common-secrets
+              key: adApplicationSecretKey
+        - name: STORE
+          valueFrom:
+            configMapKeyRef:
+              name: common-config
+              key: storeType
+        - name: STORE_CONFIGURATION
+          valueFrom:
+            secretKeyRef:
+              name: common-secrets
+              key: storeconfiguration
+        - name: SQL_CONNECTION_STRING
+          valueFrom:
+            secretKeyRef:
+              name: common-secrets
+              key: sqlconnectionstring
+        - name: URL_USER_SERVICE
+          valueFrom:
+            configMapKeyRef:
+              name: common-config
+              key: urlUserService
+        - name: POWER_BI_WORKSPACE_COLLECTION
+          valueFrom:
+            configMapKeyRef:
+              name: common-config
+              key: powerBiWorkspaceCollection
+        - name: POWER_BI_API_URL
+          valueFrom:
+            configMapKeyRef:
+              name: common-config
+              key: powerBiApiUrl
+        - name: POWER_BI_ACCESS_KEY
+          valueFrom:
+            secretKeyRef:
+              name: common-secrets
+              key: powerBiAccessKey
+        - name: DEFAULT_MAP_CONFIGURATION_KEY
+          valueFrom:
+            secretKeyRef:
+              name: common-secrets
+              key: defaultMapConfigurationKey
+        - name: ASPNETCORE_HTTPS_PORT
+          value: "443"
+        - name: AD_SUPPORT_CONTACT_URL
+          valueFrom:
+            configMapKeyRef:
+              name: common-config
+              key: adSupportContactUrl
+      nodeSelector:
+         beta.kubernetes.io/os: linux
+      imagePullSecrets:
+        - name: ahc-repository

@@ -1,0 +1,3 @@
+tenant-config\tenant-config\tenant-config.yaml
+namespace\namespace\namespace.yaml
+tenant-secrets\tenant-secrets\tenant-secrets.yaml

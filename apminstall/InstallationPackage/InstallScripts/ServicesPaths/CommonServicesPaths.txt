@@ -1,0 +1,5 @@
+apm-feeder-api\feederapi-deploy\deploy.yml
+api-customerservice\api-customerservice\deploy.yml
+apm-webservice\apm-webservice\deploy.yml
+api-translationservice\api-translationservice\deploy.yml
+api-userservice\api-userservice\deploy.yml

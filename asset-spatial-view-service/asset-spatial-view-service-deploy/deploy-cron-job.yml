@@ -1,0 +1,56 @@
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: trigger-asset-spatial-view-cron-job
+spec:
+  concurrencyPolicy: Forbid
+  schedule: "0 * * * *"
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            app: trigger-asset-spatial-view-cron-job
+          annotations:
+            version: "20181112.1"
+        spec:
+          restartPolicy: OnFailure
+          containers:
+          - name: trigger-service
+            image: ahck8s.azurecr.io/apm-trigger-service:20181112.1
+            args:
+            - --action
+            - asset-spatial-view-update
+            env:
+            - name: ENVIRONMENT_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: tenant-config
+                  key: environmentName
+            - name: BUS
+              valueFrom:
+                configMapKeyRef:
+                  name: tenant-config
+                  key: busType
+            - name: BUS_CONFIGURATION
+              valueFrom:
+                secretKeyRef:
+                  name: tenant-secrets
+                  key: busconfiguration
+            - name: TENANT
+              valueFrom:
+                configMapKeyRef:
+                  name: tenant-config
+                  key: tenant
+            - name: TARGET_TOPIC
+              valueFrom:
+                configMapKeyRef:
+                  name: tenant-config
+                  key: topicRawData
+            - name: APP_INSIGHTS_INSTRUMENTATION_KEY
+              valueFrom:
+                configMapKeyRef:
+                  name: tenant-config
+                  key: appInsightsInstrumenationKey
+          imagePullSecrets:
+          - name: ahc-repository

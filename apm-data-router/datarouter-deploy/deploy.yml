@@ -1,0 +1,74 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: datarouter-deploy
+spec:
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+  minReadySeconds: 5
+  template:
+    metadata:
+      labels:
+        app: data-router
+      annotations:
+        version: "20181206.1"
+    spec:
+      terminationGracePeriodSeconds: 60
+      containers:
+      - name: data-router
+        image: ahck8s.azurecr.io/apm-datarouter:20181206.1
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: ENVIRONMENT_NAME
+          valueFrom:
+            configMapKeyRef:
+              name: tenant-config
+              key: environmentName
+        - name: BUS
+          valueFrom:
+            configMapKeyRef:
+              name: tenant-config
+              key: busType
+        - name: BUS_CONFIGURATION
+          valueFrom:
+            secretKeyRef:
+              name: tenant-secrets
+              key: busconfiguration
+        - name: BUS_CONSUMER_GROUP
+          valueFrom:
+            configMapKeyRef:
+              name: tenant-config
+              key: consumerGroupDataRouter
+        - name: SOURCE
+          valueFrom:
+            configMapKeyRef:
+              name: tenant-config
+              key: topicRawData
+        - name: STORE
+          valueFrom:
+            configMapKeyRef:
+              name: tenant-config
+              key: storeType
+        - name: STORE_CONFIGURATION
+          valueFrom:
+            secretKeyRef:
+              name: tenant-secrets
+              key: storeconfiguration
+        - name: TENANT
+          valueFrom:
+            configMapKeyRef:
+              name: tenant-config
+              key: tenant
+        - name: APP_INSIGHTS_INSTRUMENTATION_KEY
+          valueFrom:
+            configMapKeyRef:
+              name: tenant-config
+              key: appInsightsInstrumenationKey
+      nodeSelector:
+         beta.kubernetes.io/os: linux 
+      imagePullSecrets:
+        - name: ahc-repository

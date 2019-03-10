@@ -1,0 +1,25 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: common-config
+data:
+  environmentName: <ENVIRONMENT_NAME>
+  busType: <BUS_TYPE>
+  storeType: <STORE_TYPE>
+  appInsightsInstrumenationKey: <APP_INSIGHTS_INSTRUMENTATION_KEY>
+  adDirectoryAuthority: <AAD_DIRECTORY_AUTHORITY>
+  adApplicationId: <AAD_APPLICATION_ID>
+  adDirectoryId: <AAD_DIRECTORY_ID>
+  adSupportContactUrl: <AD_SUPPORT_CONTACT_URL>
+  topicRawData: raw-data
+  keyVaultApplicationId: <KEY_VAULT_APPLICATION_ID>
+  keyVaultKeyAddress: <KEY_VAULT_KEY_ADDRESS>
+  urlCustomerService: "http://api-customerservice:8080"
+  urlTranslationService: "http://api-translationservice:8080"
+  urlUserService: "http://api-userservice:8080"
+  powerBiApiUrl: "https://api.powerbi.com"
+  powerBiWorkspaceCollection: <POWER_BI_WORKSPACE_COLLECTION>
+
+
+
+ 5

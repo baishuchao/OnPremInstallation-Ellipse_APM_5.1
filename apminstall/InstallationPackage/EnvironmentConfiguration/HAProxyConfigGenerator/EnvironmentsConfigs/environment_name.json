@@ -1,0 +1,24 @@
+{
+    "services": {
+        "api": {
+            "domainsAndCerts": {
+                "api.example.domain.apm.enterprisesoftware.abb": "",
+                "feeder.example.domain.apm.enterprisesoftware.abb": ""
+            },
+            "port": 30001
+        },
+        "web": {
+            "domainsAndCerts": {
+                "example.domain.apm.enterprisesoftware.abb": "",
+                "example.domain.dev.enterprisesoftware.abb": ""
+            },
+            "port": 30002
+        },
+        "edt": {
+            "domainsAndCerts": {
+                "example.domain.dev.apm.enterprisesoftware.abb": ""
+            },
+            "port": 30003
+        }
+    }
+}
